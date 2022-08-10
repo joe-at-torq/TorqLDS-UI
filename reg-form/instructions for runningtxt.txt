@@ -1,0 +1,10 @@
+install python3
+install pip
+pip install flask
+
+Register these runtime variables --
+export FLASK_APP=deploy-form.py
+export FLASK_RUN_PORT=8080
+
+Run App - 
+flask run --host=0.0.0.0

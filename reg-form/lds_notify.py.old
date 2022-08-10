@@ -1,0 +1,259 @@
+#!/usr/bin/python
+
+import boto3, ConfigParser, argparse
+from botocore.exceptions import ClientError
+
+#############################################################
+# lds_notify.py (LDS Component)
+# Uses AWS SES to notify students when cloud labs are built
+# Joe Dillig - Checkpoint Software 6-3-19
+##############################################################
+
+#Process Arguments - Supports 4 VMs currently
+
+parser = argparse.ArgumentParser(prog='ses_notify.py')
+
+parser.add_argument('-email', '--email', help='Recipient Email Address', required=True)
+parser.add_argument('-labname', '--labname', help='Lab Environment Name', required=False)
+
+parser.add_argument('-m1', '--machine1', help='Machine 1 Name', required=False)
+parser.add_argument('-m1ip', '--machine1ip', help='Machine 1 Ip Address', required=False)
+parser.add_argument('-m1dns', '--machine1dns', help='Machine 1 DNS', required=False)
+parser.add_argument('-m1login', '--machine1login', help='Machine 1 Login Info', required=False)
+
+parser.add_argument('-m2', '--machine2', help='Machine 2 Name', required=False)
+parser.add_argument('-m2ip', '--machine2ip', help='Machine 2 Ip Address', required=False)
+parser.add_argument('-m2dns', '--machine2dns', help='Machine 2 DNS', required=False)
+parser.add_argument('-m2login', '--machine2login', help='Machine 2 Login Info', required=False)
+
+parser.add_argument('-m3', '--machine3', help='Machine 3 Name', required=False)
+parser.add_argument('-m3ip', '--machine3ip', help='Machine 3 Ip Address', required=False)
+parser.add_argument('-m3dns', '--machine3dns', help='Machine 3 DNS', required=False)
+parser.add_argument('-m3login', '--machine3login', help='Machine 3 Login Info', required=False)
+
+parser.add_argument('-m4', '--machine4', help='Machine 4 Name', required=False)
+parser.add_argument('-m4ip', '--machine4ip', help='Machine 4 Ip Address', required=False)
+parser.add_argument('-m4dns', '--machine4dns', help='Machine 4 DNS', required=False)
+parser.add_argument('-m4login', '--machine4login', help='Machine 4 Login Info', required=False)
+
+configured_machines=0
+
+#Process Arguments
+args = parser.parse_args()
+lab_name = args.labname
+
+SENDER = "Joe Dillig <dilligj@checkpoint.com>"
+RECIPIENT = args.email
+AWS_REGION = "us-east-1"
+SUBJECT = args.labname
+
+#Optional Parameters -> Check if empty
+if args.machine1 != None:
+	m1 = args.machine1
+	m1ip = args.machine1ip
+	m1dns = args.machine1dns
+	m1login = args.machine1login
+	configured_machines = configured_machines+1
+        m1_html=""" <h3><strong>{m1}</strong>: </h3>
+				<p>Login: {m1login}</p>
+				<p>IP: {m1ip}</p>
+				<p>DNS: {m1dns}</p>""".format(**locals())
+else:
+	m1_html=""
+
+
+if args.machine2 != None:
+	m2 = args.machine2
+	m2ip = args.machine2ip
+	m2dns = args.machine2dns
+	m2login = args.machine2login
+	configured_machines = configured_machines+1
+	m2_html=""" <h3><strong>{m2}</strong>: </h3>
+				<p>Login: {m2login}</p>
+				<p>IP: {m2ip}</p>
+				<p>DNS: {m2dns}</p>""".format(**locals())
+else:
+	m2_html=""
+
+if args.machine3 != None:
+	m3 = args.machine3
+	m3ip = args.machine3ip
+	m3dns = args.machine3dns
+	m3login = args.machine3login
+	configured_machines = configured_machines+1
+	m3_html=""" <h3><strong>{m3}</strong>: </h3>
+				<p>Login: {m3login}</p>
+				<p>IP: {m3ip}</p>
+				<p>DNS: {m3dns}</p>""".format(**locals())
+else:
+	m3_html=""
+
+if args.machine4 != None:
+	m4 = args.machine4
+	m4ip = args.machine4ip
+	m4dns = args.machine4dns
+	m4login = args.machine4login
+	configured_machines = configured_machines+1
+        m4_html=""" <h3><strong>{m4}</strong>: </h3>
+				<p>Login: {m4login}</p>
+				<p>IP: {m4ip}</p>
+				<p>DNS: {m4dns}</p>""".format(**locals())
+else:
+	m4_html=""
+
+
+# The email body for recipients with non-HTML email clients.
+BODY_TEXT = ""
+
+# The HTML body of the email.
+BODY_HTML = """<html>
+<head>
+<title></title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<style type="text/css">
+    /* CLIENT-SPECIFIC STYLES */
+    body, table, td, a{-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;} /* Prevent WebKit and Windows mobile changing default text sizes */
+    table, td{mso-table-lspace: 0pt; mso-table-rspace: 0pt;} /* Remove spacing between tables in Outlook 2007 and up */
+    img{-ms-interpolation-mode: bicubic;} /* Allow smoother rendering of resized image in Internet Explorer */
+
+    /* RESET STYLES */
+    img{border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none;}
+    table{border-collapse: collapse !important;}
+    body{height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important;}
+
+    /* iOS BLUE LINKS */
+    a[x-apple-data-detectors] {
+        color: inherit !important;
+        text-decoration: none !important;
+        font-size: inherit !important;
+        font-family: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+    }
+
+    /* MOBILE STYLES */
+    @media screen and (max-width: 525px) {
+
+        /* ALLOWS FOR FLUID TABLES */
+        .wrapper {
+          width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* ADJUSTS LAYOUT OF LOGO IMAGE */
+        .logo img {
+          margin: 0 auto !important;
+        }
+
+        /* USE THESE CLASSES TO HIDE CONTENT ON MOBILE */
+        .mobile-hide {
+          display: none !important;
+        }
+
+        .img-max {
+          max-width: 100% !important;
+          width: 100% !important;
+          height: auto !important;
+        }
+
+        /* FULL-WIDTH TABLES */
+        .responsive-table {
+          width: 100% !important;
+        }
+
+        /* UTILITY CLASSES FOR ADJUSTING PADDING ON MOBILE */
+        .padding {
+          padding: 10px 5% 15px 5% !important;
+        }
+
+        .padding-meta {
+          padding: 30px 5% 0px 5% !important;
+          text-align: center;
+        }
+
+        .padding-copy {
+             padding: 10px 5% 10px 5% !important;
+          text-align: center;
+        }
+
+        .no-padding {
+          padding: 0 !important;
+        }
+
+        .section-padding {
+          padding: 50px 15px 50px 15px !important;
+        }
+
+        /* ADJUST BUTTONS ON MOBILE */
+        .mobile-button-container {
+            margin: 0 auto;
+            width: 100% !important;
+        }
+
+        .mobile-button {
+            padding: 15px !important;
+            border: 0 !important;
+            font-size: 16px !important;
+            display: block !important;
+        }
+
+    }
+
+    /* ANDROID CENTER FIX */
+    div[style*="margin: 16px 0;"] { margin: 0 !important; }
+</style>
+</head>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 25px; font-family: Helvetica, Arial, sans-serif; color: #E85685; padding-top: 30px; background-color:#333333">
+<tr><td align="center" style="font-size:32px"><h2>Welcome to Check Point Labs!</h2></td></tr>
+<tr><td align="center" style="font-size:24px; border-bottom-style: solid; border-color:#E85685">You can find your lab details below. If you run into any issues please contact Joe Dillig <a href="mailto:dilligj@checkpoint.com">dilligj@checkpoint.com</a>&nbsp;</td></tr>
+<tr><td align="left" style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; padding-top: 5px;" class="padding">"""+m1_html+"""</td></tr>
+<tr><td align="left" style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; padding-top: 5px;" class="padding">"""+m2_html+"""</td></tr>
+<tr><td align="left" style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; padding-top: 5px;" class="padding">"""+m3_html+"""</td></tr>
+<tr><td align="left" style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; padding-top: 5px;" class="padding">"""+m4_html+"""</td></tr>
+</table>
+</html>
+""".format(**locals())
+
+CHARSET = "UTF-8"
+
+# Create a new SES resource and specify a region.
+client = boto3.client('ses',region_name=AWS_REGION)
+
+# Try to send the email.
+try:
+    #Provide the contents of the email.
+    response = client.send_email(
+        Destination={
+            'ToAddresses': [
+                RECIPIENT,
+            ],
+        },
+        Message={
+            'Body': {
+                'Html': {
+                    'Charset': CHARSET,
+                    'Data': BODY_HTML,
+                },
+                'Text': {
+                    'Charset': CHARSET,
+                    'Data': BODY_TEXT,
+                },
+            },
+            'Subject': {
+                'Charset': CHARSET,
+                'Data': SUBJECT,
+            },
+        },
+        Source=SENDER,
+        # If you are not using a configuration set, comment or delete the
+        # following line
+        #ConfigurationSetName=CONFIGURATION_SET,
+    )
+# Display an error if something goes wrong.
+except ClientError as e:
+    print(e.response['Error']['Message'])
+else:
+    print("Email sent! Message ID:"),
+    print(response['MessageId'])

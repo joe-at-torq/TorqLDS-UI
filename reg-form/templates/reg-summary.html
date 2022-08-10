@@ -1,0 +1,72 @@
+<html>
+<head>
+<style> <!-- this is the CSS style for this page -->
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  p {
+    text-align: center;
+    font-size: 24;
+  }
+  body {
+    background-color: #334151;
+    font-family: "Titillium Web", sans-serif;
+    color: #00A6C1;
+  }
+  h3 {
+  	font-size: 50;
+  	text-align: center;
+  }
+  h5 {
+    font-size: 16;
+    text-align: center;
+  }
+  .outer-div
+  {
+       padding: 50px;
+  }
+  .inner-div
+  {
+       margin: auto;
+       width: 100%;
+       height: 100%;
+  }
+  body {
+    padding: 2em;
+  }
+  @media screen and (min-width: 40em) {
+    .form .field.half {
+      width: calc(50% - 1px);
+    }
+  }
+
+</style>
+<!-- change the content value to set how many seconds until the page flips back to the form, also change the IP:port so this points to the server IP in your network -->
+<meta http-equiv="refresh" content="6;url=http://lds.cplabs.net:8080" />
+<script>
+var count=6; //change the starting time of the timer here
+var counter=setInterval(timer, 1000);
+function timer()
+{
+  count=count-1;
+  if (count <= 0)
+  {
+     clearInterval(counter);
+     return;
+  }
+
+ document.getElementById("timer").innerHTML=count + " secs";
+}
+</script>
+</head>
+<body>
+<div class="outer-div"><div class="inner-div">
+<h3>Registration Complete!</h3>
+<p>Your environment is being prepared<p>
+<p>Information will be sent via email</p>
+<p style="padding-top:50px"><i>Thanks from the Torq Team!</i></p>
+<h5 style="padding-top:100px">Page will refresh in <span id="timer"></span></h5>
+</div>
+</div>
+</body>
+</html>
