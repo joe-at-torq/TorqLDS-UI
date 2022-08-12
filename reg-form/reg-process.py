@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-import time, subprocess, os
-from flask import Flask, request, render_template, requests
+import time, subprocess, os, requests, json
+from flask import Flask, request, render_template
 app = Flask(__name__)
 
 @app.route('/', methods=["GET"]) #Front page load
@@ -34,17 +34,17 @@ def processform():
                 f.write("Source IP: "+user_ip+"\n")
                 f.write("Request Time: "+str(localtime)+"\n")
 
-                type = "lab"
-                deployment_uui = 
-                deployment_owner = 
-                time = str(localtime)
+                #Gather Instance Details
+                lds_settings = open('lds_settings.json')
+                data = json.load(lds_settings)
 
                 #Notify Torq For New Deployment Request
-                url = f"https://cloud.tenable.com/vulns/export"
-                payload = {"deployment_uuid": deployment_uui ,"deployment_owner": deployment_owner, "user_name":name, "user_email":email, "class":selectedclass, "duration":lab_duration, "user_ip":user_ip, "request_time": time}
+                url = data['webhook']
+                payload = {"notification_type":"new_lab_request", "deployment_uuid": data['uuid'] ,"deployment_owner": data['owner'], "user_name":name, "user_email":email, "class":selectedclass, "duration":lab_duration, "user_ip":user_ip, "request_time": str(localtime)}
                 out = requests.post(url, headers={},json=json.dumps(payload))
 
                 f.write("#######################################\n")
+                lds_settings.close()
                 f.close()
 
         return render_template('reg-summary.html') #after processing data, present the summary page
