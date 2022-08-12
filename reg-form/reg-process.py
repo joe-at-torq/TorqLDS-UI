@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import time, subprocess, os
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, requests
 app = Flask(__name__)
 
 @app.route('/', methods=["GET"]) #Front page load
@@ -12,8 +12,6 @@ def processform():
         if request.method == 'POST':
                 name = request.form.get('name')
                 email = request.form['email']
-                #countrycode = request.form['countrycode']
-                #phone = request.form['phone']
                 selectedclass = request.form['selectedclass']
                 user_ip = request.environ['REMOTE_ADDR']
                 lab_duration = request.form['labduration']
@@ -21,7 +19,6 @@ def processform():
                 #Adjust Parameters
                 firstname,lastname=name.split(" ")
                 username=firstname[0]+lastname
-                #fullphone='+'+countrycode+phone
 
                 #Time Stamp
                 localtime = time.asctime( time.localtime(time.time()) )
@@ -32,17 +29,20 @@ def processform():
                 f.write("Name: "+name+"\n")
                 f.write("Username: "+username+"\n")
                 f.write("Email: "+email+"\n")
-                #f.write("Phone Number: "+fullphone+"\n")
                 f.write("Selected Class: "+selectedclass+"\n")
                 f.write("Lab Duration: "+lab_duration+"\n")
                 f.write("Source IP: "+user_ip+"\n")
                 f.write("Request Time: "+str(localtime)+"\n")
 
-                #Send data to lds_deploy.py
-                #print ('python lds_deploy.py '+str(selectedclass)+' '+str(username)+' '+str(fullphone)+' '+str(email)+' '+str(lab_duration))
-                #subprocess.Popen('python lds_deploy.py '+str(selectedclass)+' '+str(username)+' '+str(fullphone)+' '+str(email)+' '+str(lab_duration)+' &', cwd=os.getcwd(), shell=True)
+                type = "lab"
+                deployment_uui = 
+                deployment_owner = 
+                time = str(localtime)
 
-
+                #Notify Torq For New Deployment Request
+                url = f"https://cloud.tenable.com/vulns/export"
+                payload = {"deployment_uuid": deployment_uui ,"deployment_owner": deployment_owner, "user_name":name, "user_email":email, "class":selectedclass, "duration":lab_duration, "user_ip":user_ip, "request_time": time}
+                out = requests.post(url, headers={},json=json.dumps(payload))
 
                 f.write("#######################################\n")
                 f.close()
