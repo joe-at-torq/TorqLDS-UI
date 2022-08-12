@@ -16,10 +16,6 @@ def processform():
                 user_ip = request.environ['REMOTE_ADDR']
                 lab_duration = request.form['labduration']
 
-                #Adjust Parameters
-                firstname,lastname=name.split(" ")
-                username=firstname[0]+lastname
-
                 #Time Stamp
                 localtime = time.asctime( time.localtime(time.time()) )
 
@@ -27,7 +23,6 @@ def processform():
                 f = open("lds.log","a")
                 f.write("#######################################\n")
                 f.write("Name: "+name+"\n")
-                f.write("Username: "+username+"\n")
                 f.write("Email: "+email+"\n")
                 f.write("Selected Class: "+selectedclass+"\n")
                 f.write("Lab Duration: "+lab_duration+"\n")
